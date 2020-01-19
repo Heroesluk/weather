@@ -1,6 +1,5 @@
 import re
 
-
 def process(lenght, width):
     def extract(strin):
         rex = re.compile("(\d+)°(\d+)′(\d+)″([A-Z])")
