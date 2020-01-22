@@ -1,7 +1,7 @@
 import tkinter as tk
 
-LARGE_FONT = ("Verdana", 12)
-
+LARGE_FONT = ("Verdana", 25)
+SMOLL_FONT = ("Verdana", 13)
 
 class SeaofBTCapp(tk.Tk):
 
@@ -35,13 +35,13 @@ class StartPage(tk.Frame):
 
 
         information_page = InformationWidget(self)
-        information_page.pack()
+        information_page.grid(row=0,column=0,pady=50,sticky="nsew")
 
         graph_page = GraphWidget(self)
-        graph_page.pack()
+        graph_page.grid(row=1,column=0,sticky="nsew")
 
         day_page = DayWeatherWidget(self)
-        day_page.pack()
+        day_page.grid(row=2,column=0,sticky="nsew")
 
 
 class InformationWidget(tk.Frame):
@@ -50,14 +50,59 @@ class InformationWidget(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.configure(background='blue')
 
-        self.label = tk.Label(self, text="Start Page", font=LARGE_FONT)
-        self.label.pack(pady=10, padx=10)
+#
+        self.town_label = tk.Label(self, text='MIASTO', font=LARGE_FONT)  # Displays town
+        self.town_label.grid(row=0, column=0)
 
-        self.button2 = tk.Button(self, text='change text', command=lambda: self.change_text('fred oszukal freda'))
-        self.button2.pack(pady=10, padx=10)
+        self.day_label = tk.Label(self, text='DZIEN', font=SMOLL_FONT)  # Displays day
+        self.day_label.grid(row=1, column=0)
+
+        self.forcecast_label = tk.Label(self, text='FORECAST', font=SMOLL_FONT)  # Displays text forecast
+        self.forcecast_label.grid(row=2, column=0)
+
+#
+
+        self.display_frame = tk.Frame(self)  # Displays weather(as picture) and temperature
+        self.display_frame.grid(row=3, column=0)
+
+        self.temperature = tk.Label(self.display_frame, text='18°C', font=SMOLL_FONT)
+        self.weather_image = tk.PhotoImage(file='weather.gif')
+        self.image_label = tk.Label(self.display_frame, image=self.weather_image)
+
+        self.image_label.grid(row=0, column=0)
+        self.temperature.grid(row=0,column=1)
+
+
+##
+        self.info_frame = tk.Frame(self)  # Frame containing 3 labels made below
+        self.info_frame.grid(row=0, column=1, padx=1100)
+
+        self.rainfall = tk.Label(self.info_frame, text='rainfall chance', font=SMOLL_FONT)
+        self.rainfall.grid(row=0, column=0)
+
+        self.moisture = tk.Label(self.info_frame, text='moisture', font=SMOLL_FONT)
+        self.moisture.grid(row=1, column=0)
+
+        self.wind = tk.Label(self.info_frame, text='wind strenght', font=SMOLL_FONT)
+        self.wind.grid(row=2, column=0)
+##
+        self.graph_switch_frame = tk.Frame(self)
+        self.graph_switch_frame.grid(row=1,column=1, padx=1100)
+
+        self.button_1 = tk.Button(self.graph_switch_frame, text='Temperature')
+        self.button_2 = tk.Button(self.graph_switch_frame, text='rainfall chance')
+        self.button_3 = tk.Button(self.graph_switch_frame, text='wind')
+
+        self.button_1.grid(row=0, column=0, ipadx=10, ipady=5)
+        self.button_2.grid(row=0, column=1, ipadx=10, ipady=5)
+        self.button_3.grid(row=0, column=2, ipadx=10, ipady=5)
+
+
+
 
     def change_text(self, text):
-        self.label['text'] = text
+        #self.label['text'] = text
+        pass
 
 
 class GraphWidget(tk.Frame):
