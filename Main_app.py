@@ -2,6 +2,7 @@ import tkinter as tk
 
 LARGE_FONT = ("Verdana", 25)
 SMOLL_FONT = ("Verdana", 13)
+
 def matlibb(root):
     import tkinter
 
@@ -21,25 +22,7 @@ def matlibb(root):
     canvas.draw()
     canvas.get_tk_widget().pack(side=tkinter.TOP, fill=tkinter.BOTH, expand=1)
 
-    toolbar = NavigationToolbar2Tk(canvas, root)
-    toolbar.update()
     canvas.get_tk_widget().pack(side=tkinter.TOP, fill=tkinter.BOTH, expand=1)
-
-    def on_key_press(event):
-        print("you pressed {}".format(event.key))
-        key_press_handler(event, canvas, toolbar)
-
-    canvas.mpl_connect("key_press_event", on_key_press)
-
-    def _quit():
-        root.quit()  # stops mainloop
-        root.destroy()  # this is necessary on Windows to prevent
-        # Fatal Python Error: PyEval_RestoreThread: NULL tstate
-
-    button = tkinter.Button(master=root, text="Quit", command=_quit)
-    button.pack(side=tkinter.BOTTOM)
-    # If you put root.destroy() here, it will cause an error if the window is
-    # closed with the window manager.
 
 
 class SeaofBTCapp(tk.Tk):
@@ -71,7 +54,6 @@ class StartPage(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-
 
         information_page = InformationWidget(self)
         information_page.grid(row=0,column=0,pady=50,sticky="nsew")
@@ -136,9 +118,6 @@ class InformationWidget(tk.Frame):
         self.button_2.grid(row=0, column=1, ipadx=10, ipady=5)
         self.button_3.grid(row=0, column=2, ipadx=10, ipady=5)
 
-
-
-
     def change_text(self, text):
         #self.label['text'] = text
         pass
@@ -159,28 +138,55 @@ class DayWeatherWidget(tk.Frame):
 
     def __init__(self, parent):
         tk.Frame.__init__(self, parent)
+        self.temp_img = tk.PhotoImage(file='weather_mon.gif')
+
         self.configure(background='red')
 
-        self.label = tk.Label(self, text="Poniedzialek", font=LARGE_FONT)
-        self.label.grid(row=0, column=0, padx=5)
+        self.MON_frame = tk.Frame(self)
+        self.MON_day = tk.Label(self.MON_frame, text='Monday', font=SMOLL_FONT).pack()
+        self.MON_img = tk.Label(self.MON_frame, image=self.temp_img).pack()
+        self.MON_temp = tk.Label(self.MON_frame, text='5°C 0°C', font=SMOLL_FONT).pack()
 
-        self.label = tk.Label(self, text="Wtorek", font=LARGE_FONT)
-        self.label.grid(row=0, column=1, padx=5)
+        self.TUE_frame = tk.Frame(self)
+        self.TUE_day = tk.Label(self.TUE_frame, text='Monday', font=SMOLL_FONT).pack()
+        self.TUE_img = tk.Label(self.TUE_frame, image=self.temp_img).pack()
+        self.TUE_temp = tk.Label(self.TUE_frame, text='5°C 0°C', font=SMOLL_FONT).pack()
 
-        self.label = tk.Label(self, text="Sroda", font=LARGE_FONT)
-        self.label.grid(row=0, column=2, padx=5)
+        self.WED_frame = tk.Frame(self)
+        self.WED_day = tk.Label(self.WED_frame, text='Monday', font=SMOLL_FONT).pack()
+        self.WED_img = tk.Label(self.WED_frame, image=self.temp_img).pack()
+        self.WED_temp = tk.Label(self.WED_frame, text='5°C 0°C', font=SMOLL_FONT).pack()
 
-        self.label = tk.Label(self, text="Czwartek", font=LARGE_FONT)
-        self.label.grid(row=0, column=3, padx=5)
+        self.THU_frame = tk.Frame(self)
+        self.THU_day = tk.Label(self.THU_frame, text='Monday', font=SMOLL_FONT).pack()
+        self.THU_img = tk.Label(self.THU_frame, image=self.temp_img).pack()
+        self.THU_temp = tk.Label(self.THU_frame, text='5°C 0°C', font=SMOLL_FONT).pack()
 
-        self.label = tk.Label(self, text="Piatek", font=LARGE_FONT)
-        self.label.grid(row=0, column=4, padx=5)
+        self.FRI_frame = tk.Frame(self)
+        self.FRI_day = tk.Label(self.FRI_frame, text='Monday', font=SMOLL_FONT).pack()
+        self.FRI_img = tk.Label(self.FRI_frame, image=self.temp_img).pack()
+        self.FRI_temp = tk.Label(self.FRI_frame, text='5°C 0°C', font=SMOLL_FONT).pack()
 
-        self.label = tk.Label(self, text="Sobota", font=LARGE_FONT)
-        self.label.grid(row=0, column=5, padx=5)
+        self.SAT_frame = tk.Frame(self)
+        self.SAT_day = tk.Label(self.SAT_frame, text='Monday', font=SMOLL_FONT).pack()
+        self.SAT_img = tk.Label(self.SAT_frame, image=self.temp_img).pack()
+        self.SAT_temp = tk.Label(self.SAT_frame, text='5°C 0°C', font=SMOLL_FONT).pack()
 
-        self.label = tk.Label(self, text="Niedziela", font=LARGE_FONT)
-        self.label.grid(row=0, column=6, padx=5)
+        self.SUN_frame = tk.Frame(self)
+        self.SUN_day = tk.Label(self.SUN_frame, text='Monday', font=SMOLL_FONT).pack()
+        self.SUN_img = tk.Label(self.SUN_frame, image=self.temp_img).pack()
+        self.SUN_temp = tk.Label(self.SUN_frame, text='5°C 0°C', font=SMOLL_FONT).pack()
+
+#
+        self.MON_frame.grid(row=0, column=0, padx=20)
+        self.TUE_frame.grid(row=0, column=1, padx=20)
+        self.WED_frame.grid(row=0, column=2, padx=20)
+        self.THU_frame.grid(row=0, column=3, padx=20)
+        self.FRI_frame.grid(row=0, column=4, padx=20)
+        self.SAT_frame.grid(row=0, column=5, padx=20)
+        self.SUN_frame.grid(row=0, column=6, padx=20)
+
+
 
 
 
