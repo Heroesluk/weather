@@ -68,7 +68,7 @@ class StartPage(tk.Frame):
         town_list = ListTown(self)
         town_list.grid(rowspan=2, row=0, column=1, sticky="nsew")
 
-
+print('dziala')
 class InformationWidget(tk.Frame):
 
     def __init__(self, parent):
