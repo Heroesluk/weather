@@ -49,6 +49,8 @@ class SeaofBTCapp(tk.Tk):
         frame = self.frames[cont]
         frame.grid(row=0, column=0, sticky="nsew")
 
+#
+
 
 class StartPage(tk.Frame):
 
@@ -56,13 +58,16 @@ class StartPage(tk.Frame):
         tk.Frame.__init__(self, parent)
 
         information_page = InformationWidget(self)
-        information_page.grid(row=0,column=0,pady=50,sticky="nsew")
+        information_page.grid(row=0,column=0,sticky="nsew")
 
         graph_page = GraphWidget(self)
         graph_page.grid(row=1,column=0,sticky="nsew")
 
         day_page = DayWeatherWidget(self)
         day_page.grid(row=2,column=0,sticky="nsew")
+
+        town_list = ListTown(self)
+        town_list.grid(rowspan=2, row=0, column=1, sticky="nsew")
 
 
 class InformationWidget(tk.Frame):
@@ -96,7 +101,7 @@ class InformationWidget(tk.Frame):
 
 ##
         self.info_frame = tk.Frame(self)  # Frame containing 3 labels made below
-        self.info_frame.grid(row=0, column=1, padx=1100)
+        self.info_frame.grid(row=0, column=1)
 
         self.rainfall = tk.Label(self.info_frame, text='rainfall chance', font=SMOLL_FONT)
         self.rainfall.grid(row=0, column=0)
@@ -108,7 +113,7 @@ class InformationWidget(tk.Frame):
         self.wind.grid(row=2, column=0)
 ##
         self.graph_switch_frame = tk.Frame(self)
-        self.graph_switch_frame.grid(row=1,column=1, padx=1100)
+        self.graph_switch_frame.grid(row=1,column=1)
 
         self.button_1 = tk.Button(self.graph_switch_frame, text='Temperature')
         self.button_2 = tk.Button(self.graph_switch_frame, text='rainfall chance')
@@ -187,12 +192,18 @@ class DayWeatherWidget(tk.Frame):
         self.SUN_frame.grid(row=0, column=6, padx=20)
 
 
+class ListTown(tk.Frame):
+    def __init__(self, parent):
+        tk.Frame.__init__(self, parent)
 
+        eg = [str(i) + ' tak, dziala' for i in range(50)]
+        var_eg = tk.StringVar(value=eg)
 
+        self.entry = tk.Entry(self)
+        self.entry.pack(fill='both')
 
-
-
-
+        self.listbox = tk.Listbox(self, height=20, width=35, listvariable=var_eg)
+        self.listbox.pack()
 
 
 app = SeaofBTCapp()
