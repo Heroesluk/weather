@@ -50,7 +50,7 @@ class SeaofBTCapp(tk.Tk):
         frame.grid(row=0, column=0, sticky="nsew")
 
 #
-
+print('merge dziala')
 
 class StartPage(tk.Frame):
 
