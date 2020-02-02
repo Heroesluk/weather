@@ -1,4 +1,11 @@
 import tkinter as tk
+import requests
+import json
+from datetime import date
+
+# TODO: wyswietlanie miast z pliku: NAJPOPULARNIEJSZE -> TE PO WYSZUKANIU
+# TODO: implementacja wyswietlania informacji w aplikacji, na podstawie wybranego z LISTY miasta
+# TODO: UI Improvment
 
 LARGE_FONT = ("Verdana", 25)
 SMOLL_FONT = ("Verdana", 13)
@@ -23,6 +30,13 @@ def matlibb(root):
     canvas.get_tk_widget().pack(side=tkinter.TOP, fill=tkinter.BOTH, expand=1)
 
     canvas.get_tk_widget().pack(side=tkinter.TOP, fill=tkinter.BOTH, expand=1)
+
+
+
+link = 'https://api.darksky.net/forecast/7c53a90481bcc12e69c188a374ddae2d/51.7833,19.4667?units=si'
+
+
+
 
 
 class SeaofBTCapp(tk.Tk):
@@ -68,8 +82,10 @@ class StartPage(tk.Frame):
         town_list = ListTown(self)
         town_list.grid(rowspan=2, row=0, column=1, sticky="nsew")
 
-print('dziala')
+
 class InformationWidget(tk.Frame):
+    # show: TOWN, DAY, TIME, WEATHER_TYPE(E.G CLOUDY), WEATHER_TYPE_ICON,
+    # DAY_TEMPERATURE, RAINFALL_CHANCE, MOISTURE, WIND_STR
 
     def __init__(self, parent):
         tk.Frame.__init__(self, parent)
@@ -139,6 +155,7 @@ class GraphWidget(tk.Frame):
 
 
 class DayWeatherWidget(tk.Frame):
+    # SHOW: DAY, WEATHER_TYPE_ICON, DAY_TEMPERATURE, NIGHT_TEMPERATURE
 
     def __init__(self, parent):
         tk.Frame.__init__(self, parent)
@@ -182,13 +199,13 @@ class DayWeatherWidget(tk.Frame):
         self.SUN_temp = tk.Label(self.SUN_frame, text='5°C 0°C', font=SMOLL_FONT).pack()
 
 #
-        self.MON_frame.grid(row=0, column=0, padx=20)
-        self.TUE_frame.grid(row=0, column=1, padx=20)
-        self.WED_frame.grid(row=0, column=2, padx=20)
-        self.THU_frame.grid(row=0, column=3, padx=20)
-        self.FRI_frame.grid(row=0, column=4, padx=20)
-        self.SAT_frame.grid(row=0, column=5, padx=20)
-        self.SUN_frame.grid(row=0, column=6, padx=20)
+        self.MON_frame.grid(row=0, column=0, padx=10)
+        self.TUE_frame.grid(row=0, column=1, padx=10)
+        self.WED_frame.grid(row=0, column=2, padx=10)
+        self.THU_frame.grid(row=0, column=3, padx=10)
+        self.FRI_frame.grid(row=0, column=4, padx=10)
+        self.SAT_frame.grid(row=0, column=5, padx=10)
+        self.SUN_frame.grid(row=0, column=6, padx=10)
 
 
 class ListTown(tk.Frame):

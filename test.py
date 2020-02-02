@@ -1,73 +1,39 @@
-import tkinter as tk
+import requests
+import json
+from datetime import date
 
-LARGE_FONT = ("Verdana", 12)
-
-
-class SeaofBTCapp(tk.Tk):
-
-    def __init__(self, *args, **kwargs):
-        tk.Tk.__init__(self, *args, **kwargs)
-        container = tk.Frame(self)
-
-        container.pack(side="top", fill="both", expand=True)
-        container.grid_rowconfigure(0, weight=1)
-        container.grid_columnconfigure(0, weight=1)
-
-        self.frames = {}
-
-        for F in (StartPage, PageOne, PageTwo):
-            frame = F(container, self)
-            self.frames[F] = frame
-
-        self.show_frame(StartPage)
-
-    def show_frame(self, cont):
-        frame = self.frames[cont]
-        frame.tkraise()
-        frame.grid(row=0, column=0, sticky="nsew")
+link = 'https://api.darksky.net/forecast/7c53a90481bcc12e69c188a374ddae2d/51.7833,19.4667?units=si'
 
 
-class StartPage(tk.Frame):
+class Info():
+    def __init__(self, link):
+        self.link = link
 
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        label = tk.Label(self, text="Start Page", font=LARGE_FONT)
-        label.pack(pady=10, padx=10)
+    req = requests.get(link)
+    data = req.json()
 
-        button = tk.Button(self, text='To page ONE', command=lambda: controller.show_frame(PageOne))
-        button.pack(pady=10, padx=10)
+    days = [i for i in data['daily']['data']]  # list of day Json objects
 
-        button = tk.Button(self, text='To page Two', command=lambda: controller.show_frame(PageTwo))
-        button.pack(pady=10, padx=10)
+    days_temp_High = [int(i['temperatureHigh']) for i in days]
+    days_temp_Low = [int(i['temperatureLow']) for i in days]
+    days_icon = [i['icon'] for i in days]
 
-
-class PageOne(tk.Frame):
-
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        label = tk.Label(self, text="Page ONE", font=LARGE_FONT)
-        label.pack(pady=10, padx=10)
-
-        button = tk.Button(self, text='To page Two', command=lambda: controller.show_frame(PageTwo))
-        button.pack(pady=10, padx=10)
-
-        button = tk.Button(self, text='To HOME', command=lambda: controller.show_frame(StartPage))
-        button.pack(pady=10, padx=10)
+    week_days_dict = {0: 'Monday', 1: 'Tuesday', 2: 'Wednesday', 3: 'Thursday', 4: 'Friday', 5: 'Saturday', 6: 'Sunday'}
+    day = date.today().weekday()
+    week_days = []
+    for i in range(7):
+        try:
+            week_days.append(week_days_dict[day])
+        except KeyError:
+            day = 0
+            week_days.append(week_days_dict[day])
+        day += 1
 
 
-class PageTwo(tk.Frame):
+data_unit = Info(link)
 
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        label = tk.Label(self, text="Page TWO", font=LARGE_FONT)
-        label.pack(pady=10, padx=10)
-
-        button = tk.Button(self, text='To Page One', command=lambda: controller.show_frame(PageOne))
-        button.pack(pady=10, padx=10)
-
-        button = tk.Button(self, text='To HOME', command=lambda: controller.show_frame(StartPage))
-        button.pack(pady=10, padx=10)
-
-
-app = SeaofBTCapp()
-app.mainloop()
+for i in range(7):
+    print('At {} highest temp will be {} and the lowest will be {}, and the weather summary is {}'.format(data_unit.week_days[i],
+                                                                           data_unit.days_temp_High[i],
+                                                                           data_unit.days_temp_Low[i],
+                                                                           data_unit.days_icon[i]))
