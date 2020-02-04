@@ -39,9 +39,10 @@ class Info():  # days_temp_high&low week_days
 
         # Day info for  Information Widget
         self.icon = self.data['currently']['icon']
-        self.day = self.days[0]
         self.town = 'Lodz' #Do zmiany na variable
         self.temperature = self.data['currently']['temperature']
+        self.forecast = self.data['currently']['summary']
+        self.timezone = self.data['timezone'] # Temporary for town
 
         # Daily
         self.days_temp_High = [int(i['temperatureHigh']) for i in self.days]
@@ -58,6 +59,9 @@ class Info():  # days_temp_high&low week_days
                 self.day = 0
                 self.week_days.append(self.week_days_dict[self.day])
             self.day += 1
+
+        self.day = self.week_days[0] #current day
+
 
 
 DataInfo = Info('https://api.darksky.net/forecast/7c53a90481bcc12e69c188a374ddae2d/51.7833,19.4667?units=si')
@@ -97,49 +101,44 @@ class View:
         def __init__(self, parent):
             tk.Frame.__init__(self, parent)
             self.configure(background='blue')
-
-            #
-            self.town_label = tk.Label(self, text='MIASTO', font=LARGE_FONT)  # Displays town
-            self.town_label.grid(row=0, column=0)
-
-            self.day_label = tk.Label(self, text='DZIEN', font=SMOLL_FONT)  # Displays day
-            self.day_label.grid(row=1, column=0)
-
-            self.forcecast_label = tk.Label(self, text='FORECAST', font=SMOLL_FONT)  # Displays text forecast
-            self.forcecast_label.grid(row=2, column=0)
-
-            #
-
-            self.display_frame = tk.Frame(self)  # Displays weather(as picture) and temperature
-            self.display_frame.grid(row=3, column=0)
-
-            self.temperature = tk.Label(self.display_frame, text='18°C', font=SMOLL_FONT)
             self.weather_image = tk.PhotoImage(file='weather.gif')
+
+            # Parent Frames
+
+            self.town_label = tk.Label(self, text=DataInfo.timezone, font=LARGE_FONT)  # Displays town
+            self.day_label = tk.Label(self, text=DataInfo.day, font=SMOLL_FONT)  # Displays day
+            self.forcecast_label = tk.Label(self, text=DataInfo.forecast, font=SMOLL_FONT)  # Displays text forecast
+            self.display_frame = tk.Frame(self)  # Displays weather(as picture) and temperature
+            self.info_frame = tk.Frame(self)  # Frame containing 3 labels made below
+            self.buttons_frame = tk.Frame(self)
+
+            self.day_label.grid(row=1, column=0)
+            self.town_label.grid(row=0, column=0)
+            self.forcecast_label.grid(row=2, column=0)
+            self.display_frame.grid(row=3, column=0)
+            self.info_frame.grid(row=0, column=1)
+            self.buttons_frame.grid(row=1, column=1)
+
+            # Children Frames
+
+            self.temperature = tk.Label(self.display_frame, text='{}°C'.format(int(DataInfo.temperature)), font=SMOLL_FONT)
             self.image_label = tk.Label(self.display_frame, image=self.weather_image)
+
+            self.rainfall = tk.Label(self.info_frame, text='rainfall chance', font=SMOLL_FONT)
+            self.moisture = tk.Label(self.info_frame, text='moisture', font=SMOLL_FONT)
+            self.wind = tk.Label(self.info_frame, text='wind strenght', font=SMOLL_FONT)
+
+            self.button_1 = tk.Button(self.buttons_frame, text='Temperature',
+                                      command=lambda: Controller.rebuild(cuck))
+            self.button_2 = tk.Button(self.buttons_frame, text='rainfall chance')
+            self.button_3 = tk.Button(self.buttons_frame, text='wind')
 
             self.image_label.grid(row=0, column=0)
             self.temperature.grid(row=0, column=1)
 
-            ##
-            self.info_frame = tk.Frame(self)  # Frame containing 3 labels made below
-            self.info_frame.grid(row=0, column=1)
-
-            self.rainfall = tk.Label(self.info_frame, text='rainfall chance', font=SMOLL_FONT)
             self.rainfall.grid(row=0, column=0)
-
-            self.moisture = tk.Label(self.info_frame, text='moisture', font=SMOLL_FONT)
             self.moisture.grid(row=1, column=0)
-
-            self.wind = tk.Label(self.info_frame, text='wind strenght', font=SMOLL_FONT)
             self.wind.grid(row=2, column=0)
-            ##
-            self.graph_switch_frame = tk.Frame(self)
-            self.graph_switch_frame.grid(row=1, column=1)
-
-            self.button_1 = tk.Button(self.graph_switch_frame, text='Temperature',
-                                      command=lambda: Controller.rebuild(cuck))
-            self.button_2 = tk.Button(self.graph_switch_frame, text='rainfall chance')
-            self.button_3 = tk.Button(self.graph_switch_frame, text='wind')
 
             self.button_1.grid(row=0, column=0, ipadx=10, ipady=5)
             self.button_2.grid(row=0, column=1, ipadx=10, ipady=5)
