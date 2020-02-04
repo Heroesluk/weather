@@ -33,40 +33,44 @@ def matlibb(root):
     canvas.get_tk_widget().pack(side=tkinter.TOP, fill=tkinter.BOTH, expand=1)
 
 
-link = 'https://api.darksky.net/forecast/7c53a90481bcc12e69c188a374ddae2d/51.7833,19.4667?units=si'
-
-
 class Info():
     def __init__(self, link):
         self.link = link
+        self.req = requests.get(link)
+        self.data = self.req.json()
+        self.days = [i for i in self.data['daily']['data']]  # list of day Json objects
 
-    req = requests.get(link)
-    data = req.json()
+        self.days_temp_High = [int(i['temperatureHigh']) for i in  self.days]
+        self.days_temp_Low = [int(i['temperatureLow']) for i in  self.days]
+        self.days_icon = [i['icon'] for i in  self.days]
 
-    days = [i for i in data['daily']['data']]  # list of day Json objects
+        self.week_days_dict = {0: 'Monday', 1: 'Tuesday', 2: 'Wednesday', 3: 'Thursday', 4: 'Friday', 5: 'Saturday', 6: 'Sunday'}
+        self.day = date.today().weekday()
 
-    days_temp_High = [int(i['temperatureHigh']) for i in days]
-    days_temp_Low = [int(i['temperatureLow']) for i in days]
-    days_icon = [i['icon'] for i in days]
+        self.week_days = []
 
-    week_days_dict = {0: 'Monday', 1: 'Tuesday', 2: 'Wednesday', 3: 'Thursday', 4: 'Friday', 5: 'Saturday', 6: 'Sunday'}
-    day = date.today().weekday()
-    week_days = []
+
+        for i in range(7):
+            try:
+                self.week_days.append(self.week_days_dict[self.day])
+            except KeyError:
+                self.day = 0
+                self.week_days.append(self.week_days_dict[self.day])
+            self.day += 1
+
+
+def find():
     for i in range(7):
-        try:
-            week_days.append(week_days_dict[day])
-        except KeyError:
-            day = 0
-            week_days.append(week_days_dict[day])
-        day += 1
+        print('At {} highest temp will be {} and the lowest will be {}, and the weather summary is {}'.format(
+            d_unt.week_days[i],
+            d_unt.days_temp_High[i],
+            d_unt.days_temp_Low[i],
+            d_unt.days_icon[i]))
 
 
-d_unt = Info(link)
-for i in range(7):
-    print('At {} highest temp will be {} and the lowest will be {}, and the weather summary is {}'.format(d_unt.week_days[i],
-                                                                           d_unt.days_temp_High[i],
-                                                                           d_unt.days_temp_Low[i],
-                                                                           d_unt.days_icon[i]))
+d_unt = Info('https://api.darksky.net/forecast/7c53a90481bcc12e69c188a374ddae2d/51.7833,19.4667?units=si')
+find()
+
 
 class SeaofBTCapp(tk.Tk):
 
@@ -99,17 +103,24 @@ class StartPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
-        information_page = InformationWidget(self)
-        information_page.grid(row=0,column=0,sticky="nsew")
+        self.information_page = InformationWidget(self)
+        self.information_page.grid(row=0,column=0,sticky="nsew")
 
-        graph_page = GraphWidget(self)
-        graph_page.grid(row=1,column=0,sticky="nsew")
+        self.graph_page = GraphWidget(self)
+        self.graph_page.grid(row=1,column=0,sticky="nsew")
 
-        day_page = DayWeatherWidget(self)
-        day_page.grid(row=2,column=0,sticky="nsew")
+        self.day_page = DayWeatherWidget(self)
+        self.day_page.grid(row=2,column=0,sticky="nsew")
 
-        town_list = ListTown(self)
-        town_list.grid(rowspan=2, row=0, column=1, sticky="nsew")
+        self.town_list = ListTown(self)
+        self.town_list.grid(rowspan=2, row=0, column=1, sticky="nsew")
+
+        self.button = tk.Button(self,command=self.on_click)
+        self.button.grid(row=3,column=1)
+
+    def on_click(self):
+        self.day_page.overwrite()
+
 
 
 class InformationWidget(tk.Frame):
@@ -159,7 +170,7 @@ class InformationWidget(tk.Frame):
         self.graph_switch_frame = tk.Frame(self)
         self.graph_switch_frame.grid(row=1,column=1)
 
-        self.button_1 = tk.Button(self.graph_switch_frame, text='Temperature', command=lambda: print('dziala'))
+        self.button_1 = tk.Button(self.graph_switch_frame, text='Temperature')
         self.button_2 = tk.Button(self.graph_switch_frame, text='rainfall chance')
         self.button_3 = tk.Button(self.graph_switch_frame, text='wind')
 
@@ -188,63 +199,25 @@ class DayWeatherWidget(tk.Frame):
 
         self.configure(background='red')
 
+        self.create_w()
+
+    def create_w(self):
         self.MON_frame = tk.Frame(self)
-        self.MON_day = tk.Label(self.MON_frame, text=d_unt.week_days[0], font=SMOLL_FONT).pack()
-        self.MON_img = tk.Label(self.MON_frame, image=self.temp_img).pack()
-        self.MON_temp = tk.Label(self.MON_frame,
+        self.MON_frame.MON_day = tk.Label(self.MON_frame, text=d_unt.week_days[1], font=SMOLL_FONT)
+        self.MON_frame.MON_img = tk.Label(self.MON_frame, image=self.temp_img).pack()
+        self.MON_frame.MON_temp = tk.Label(self.MON_frame,
                                  text='{}C {}°C'.format(d_unt.days_temp_High[0], d_unt.days_temp_Low[0]),
                                  font=SMOLL_FONT).pack()
 
-        self.TUE_frame = tk.Frame(self)
-        self.TUE_day = tk.Label(self.TUE_frame, text=d_unt.week_days[1], font=SMOLL_FONT).pack()
-        self.TUE_img = tk.Label(self.TUE_frame, image=self.temp_img).pack()
-        self.TUE_temp = tk.Label(self.TUE_frame,
-                                 text='{}C {}°C'.format(d_unt.days_temp_High[1], d_unt.days_temp_Low[1]),
-                                 font=SMOLL_FONT).pack()
+        self.MON_frame.grid(row=0,column=0)
 
-        self.WED_frame = tk.Frame(self)
-        self.WED_day = tk.Label(self.WED_frame, text=d_unt.week_days[2], font=SMOLL_FONT).pack()
-        self.WED_img = tk.Label(self.WED_frame, image=self.temp_img).pack()
-        self.WED_temp = tk.Label(self.WED_frame,
-                                 text='{}C {}°C'.format(d_unt.days_temp_High[2], d_unt.days_temp_Low[2]),
-                                 font=SMOLL_FONT).pack()
+    def overwrite(self):
+        global d_unt
+        del d_unt
 
-        self.THU_frame = tk.Frame(self)
-        self.THU_day = tk.Label(self.THU_frame, text=d_unt.week_days[3], font=SMOLL_FONT).pack()
-        self.THU_img = tk.Label(self.THU_frame, image=self.temp_img).pack()
-        self.THU_temp = tk.Label(self.THU_frame,
-                                 text='{}C {}°C'.format(d_unt.days_temp_High[3], d_unt.days_temp_Low[3]),
-                                 font=SMOLL_FONT).pack()
+        d_unt = Info('https://api.darksky.net/forecast/7c53a90481bcc12e69c188a374ddae2d/35.6895000,139.6917100?units=si')
+        self.create_w()
 
-        self.FRI_frame = tk.Frame(self)
-        self.FRI_day = tk.Label(self.FRI_frame, text=d_unt.week_days[4], font=SMOLL_FONT).pack()
-        self.FRI_img = tk.Label(self.FRI_frame, image=self.temp_img).pack()
-        self.FRI_temp = tk.Label(self.FRI_frame,
-                                 text='{}C {}°C'.format(d_unt.days_temp_High[4], d_unt.days_temp_Low[4]),
-                                 font=SMOLL_FONT).pack()
-
-        self.SAT_frame = tk.Frame(self)
-        self.SAT_day = tk.Label(self.SAT_frame, text=d_unt.week_days[5], font=SMOLL_FONT).pack()
-        self.SAT_img = tk.Label(self.SAT_frame, image=self.temp_img).pack()
-        self.SAT_temp = tk.Label(self.SAT_frame,
-                                 text='{}C {}°C'.format(d_unt.days_temp_High[5], d_unt.days_temp_Low[5]),
-                                 font=SMOLL_FONT).pack()
-
-        self.SUN_frame = tk.Frame(self)
-        self.SUN_day = tk.Label(self.SUN_frame, text=d_unt.week_days[6], font=SMOLL_FONT).pack()
-        self.SUN_img = tk.Label(self.SUN_frame, image=self.temp_img).pack()
-        self.SUN_temp = tk.Label(self.SUN_frame,
-                                 text='{}C {}°C'.format(d_unt.days_temp_High[6], d_unt.days_temp_Low[6]),
-                                 font=SMOLL_FONT).pack()
-
-#
-        self.MON_frame.grid(row=0, column=0, padx=10)
-        self.TUE_frame.grid(row=0, column=1, padx=10)
-        self.WED_frame.grid(row=0, column=2, padx=10)
-        self.THU_frame.grid(row=0, column=3, padx=10)
-        self.FRI_frame.grid(row=0, column=4, padx=10)
-        self.SAT_frame.grid(row=0, column=5, padx=10)
-        self.SUN_frame.grid(row=0, column=6, padx=10)
 
 
 class ListTown(tk.Frame):
