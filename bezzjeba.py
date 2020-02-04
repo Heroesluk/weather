@@ -2,6 +2,9 @@ import tkinter as tk
 import requests
 import json
 from datetime import date
+from decimal import Decimal
+
+
 global cuck
 global DataInfo
 LARGE_FONT = ("Verdana", 25)
@@ -39,17 +42,20 @@ class Info():  # days_temp_high&low week_days
 
         # Day info for  Information Widget
         self.icon = self.data['currently']['icon']
-        self.town = 'Lodz' #Do zmiany na variable
+        self.town = 'Lodz'  # Do zmiany na variable
         self.temperature = self.data['currently']['temperature']
         self.forecast = self.data['currently']['summary']
-        self.timezone = self.data['timezone'] # Temporary for town
+        self.timezone = self.data['timezone']  # Temporary for town
+        self.wind =  int(self.data['currently']['windSpeed']*1.610)
+        self.humidity = int(self.data['currently']['humidity']*100)
+        self.rain_chance = int(self.data['currently']['precipProbability']*100)
 
         # Daily
         self.days_temp_High = [int(i['temperatureHigh']) for i in self.days]
         self.days_temp_Low = [int(i['temperatureLow']) for i in self.days]
         self.days_icon = [i['icon'] for i in self.days]
-        self.week_days_dict = {0: 'Monday', 1: 'Tuesday', 2: 'Wednesday', 3: 'Thursday', 4: 'Friday', 5: 'Saturday',
-                               6: 'Sunday'}
+        self.week_days_dict = {0: 'Mon', 1: 'Tue', 2: 'Wed', 3: 'Thu', 4: 'Fri', 5: 'Sat',
+                               6: 'Sun'}
         self.day = date.today().weekday()
         self.week_days = []
         for i in range(8):
@@ -60,11 +66,11 @@ class Info():  # days_temp_high&low week_days
                 self.week_days.append(self.week_days_dict[self.day])
             self.day += 1
 
-        self.day = self.week_days[0] #current day
-
+        self.day = self.week_days[0]  # current day
 
 
 DataInfo = Info('https://api.darksky.net/forecast/7c53a90481bcc12e69c188a374ddae2d/51.7833,19.4667?units=si')
+
 
 class Model:
     pass
@@ -72,14 +78,15 @@ class Model:
 
 class View:
 
-    def __init__(self, master):
+    def __init__(self, master, data):
+        self.data = data
         self.frame = tk.Frame(master)  # Parent
         self.frame.pack()
 
         self.GraphWidget = self.GraphClass(self.frame)
-        self.InformationWidget = self.InformationClass(self.frame)
+        self.InformationWidget = self.InformationClass(self.frame,self.data)
         self.TownListWidget = self.TownListClass(self.frame)
-        self.DayWeatherWidget = self.DayWeatherClass(self.frame)
+        self.DayWeatherWidget = self.DayWeatherClass(self.frame, self.data)
 
         self.GraphWidget.grid(row=1, column=0, sticky="nsew")
         self.InformationWidget.grid(row=0, column=0, sticky="nsew")
@@ -98,16 +105,17 @@ class View:
         # show: TOWN, DAY, TIME, WEATHER_TYPE(E.G CLOUDY), WEATHER_TYPE_ICON,
         # DAY_TEMPERATURE, RAINFALL_CHANCE, MOISTURE, WIND_STR
 
-        def __init__(self, parent):
+        def __init__(self, parent,data):
             tk.Frame.__init__(self, parent)
+            self.data = data
             self.configure(background='blue')
             self.weather_image = tk.PhotoImage(file='weather.gif')
 
             # Parent Frames
 
-            self.town_label = tk.Label(self, text=DataInfo.timezone, font=LARGE_FONT)  # Displays town
-            self.day_label = tk.Label(self, text=DataInfo.day, font=SMOLL_FONT)  # Displays day
-            self.forcecast_label = tk.Label(self, text=DataInfo.forecast, font=SMOLL_FONT)  # Displays text forecast
+            self.town_label = tk.Label(self, text=self.data.timezone, font=LARGE_FONT)  # Displays town
+            self.day_label = tk.Label(self, text=self.data.day, font=SMOLL_FONT)  # Displays day
+            self.forcecast_label = tk.Label(self, text=self.data.forecast, font=SMOLL_FONT)  # Displays text forecast
             self.display_frame = tk.Frame(self)  # Displays weather(as picture) and temperature
             self.info_frame = tk.Frame(self)  # Frame containing 3 labels made below
             self.buttons_frame = tk.Frame(self)
@@ -121,12 +129,13 @@ class View:
 
             # Children Frames
 
-            self.temperature = tk.Label(self.display_frame, text='{}°C'.format(int(DataInfo.temperature)), font=SMOLL_FONT)
+            self.temperature = tk.Label(self.display_frame, text='{}°C'.format(int(self.data.temperature)),
+                                        font=SMOLL_FONT)
             self.image_label = tk.Label(self.display_frame, image=self.weather_image)
 
-            self.rainfall = tk.Label(self.info_frame, text='rainfall chance', font=SMOLL_FONT)
-            self.moisture = tk.Label(self.info_frame, text='moisture', font=SMOLL_FONT)
-            self.wind = tk.Label(self.info_frame, text='wind strenght', font=SMOLL_FONT)
+            self.rainfall = tk.Label(self.info_frame, text='Rainfall chance: {}%'.format(data.rain_chance), font=SMOLL_FONT)
+            self.moisture = tk.Label(self.info_frame, text='Humidity: {}%'.format(data.humidity), font=SMOLL_FONT)
+            self.wind = tk.Label(self.info_frame, text='Wind: {}%'.format(data.wind), font=SMOLL_FONT)
 
             self.button_1 = tk.Button(self.buttons_frame, text='Temperature',
                                       command=lambda: Controller.rebuild(cuck))
@@ -160,17 +169,20 @@ class View:
     class DayWeatherClass(tk.Frame):
         # SHOW: DAY, WEATHER_TYPE_ICON, DAY_TEMPERATURE, NIGHT_TEMPERATURE
 
-        def __init__(self, parent):
+        def __init__(self, parent, data):
             tk.Frame.__init__(self, parent)
+            self.data = data
             self.temp_img = tk.PhotoImage(file='weather_mon.gif')
+            self.build()
 
-        def build(self, Data):
-            for i in range(len(Data.days_temp_High)):
+        def build(self):
+            for i in range(len(self.data.days_temp_High)):
                 self.w_frame = tk.Frame(self)
-                self.w_frame.day = tk.Label(self.w_frame, text=Data.week_days[i], font=SMOLL_FONT).pack()
+                self.w_frame.day = tk.Label(self.w_frame, text=self.data.week_days[i], font=SMOLL_FONT).pack()
                 self.w_frame.img = tk.Label(self.w_frame, image=self.temp_img).pack()
-                self.w_frame.temp = tk.Label(self.w_frame, text=' {}°C,  {}°C'.format(Data.days_temp_High[i],
-                                                                                  Data.days_temp_Low[i])).pack()
+                self.w_frame.temp = tk.Label(self.w_frame, text=' {}°C,  {}°C'.format(self.data.days_temp_High[i],
+                                                                                      self.data.days_temp_Low[
+                                                                                          i])).pack()
 
                 self.w_frame.pack(side='left')
 
@@ -180,19 +192,17 @@ class Controller:
     def __init__(self):
         self.root = tk.Tk()
         self.model = Model()
-        self.view = View(self.root)
-        self.view.DayWeatherWidget.build(DataInfo)
+        self.view = View(self.root, DataInfo)
 
     def run(self):
         self.root.title('works')
         self.root.mainloop()
 
     def rebuild(self):
-        DataInfo = Info('https://api.darksky.net/forecast/7c53a90481bcc12e69c188a374ddae2d/35.6895000,139.6917100?units=si')
+        DataInfo = Info(
+            'https://api.darksky.net/forecast/7c53a90481bcc12e69c188a374ddae2d/35.6895000,139.6917100?units=si')
         self.view.frame.destroy()
-        self.view = View(self.root)
-        self.view.DayWeatherClass.build(self.view.DayWeatherWidget, DataInfo)
-
+        self.view = View(self.root, DataInfo)
 
 
 cuck = Controller()
