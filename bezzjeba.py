@@ -50,14 +50,15 @@ class Info():  # days_temp_high&low week_days
         self.humidity = int(self.data['currently']['humidity']*100)
         self.rain_chance = int(self.data['currently']['precipProbability']*100)
 
-        # Daily
+        # Daily info for day weather widget
         self.days_temp_High = [int(i['temperatureHigh']) for i in self.days]
         self.days_temp_Low = [int(i['temperatureLow']) for i in self.days]
         self.days_icon = [i['icon'] for i in self.days]
-        self.week_days_dict = {0: 'Mon', 1: 'Tue', 2: 'Wed', 3: 'Thu', 4: 'Fri', 5: 'Sat',
-                               6: 'Sun'}
+        self.week_days_dict = {0: 'Monay', 1: 'Tuesday', 2: 'Wednsday', 3: 'Thursday', 4: 'Friday', 5: 'Saturday',
+                               6: 'Sunday'}
         self.day = date.today().weekday()
         self.week_days = []
+        self.full_week_days = []
         for i in range(8):
             try:
                 self.week_days.append(self.week_days_dict[self.day])
@@ -93,6 +94,13 @@ class View:
         self.TownListWidget.grid(rowspan=2, row=0, column=1, sticky="nsew")
         self.DayWeatherWidget.grid(row=2, column=0, sticky="nsew")
 
+        self.weathers = []
+
+    def prep_img(self):
+        self.weathers = ['clear-day','clear-night','rain','snow','sleet','wind','fog','cloudy','partly-cloudy-day','partly-cloudy-night']
+
+        self.current_img = tk.Image
+
     class GraphClass(tk.Frame):
 
         def __init__(self, master):
@@ -109,7 +117,8 @@ class View:
             tk.Frame.__init__(self, parent)
             self.data = data
             self.configure(background='blue')
-            self.weather_image = tk.PhotoImage(file='weather.gif')
+
+            self.weather_image = tk.PhotoImage(file=data.icon + '.gif')
 
             # Parent Frames
 
@@ -172,14 +181,15 @@ class View:
         def __init__(self, parent, data):
             tk.Frame.__init__(self, parent)
             self.data = data
-            self.temp_img = tk.PhotoImage(file='weather_mon.gif')
+            self.images = [(tk.PhotoImage(file=self.data.days_icon[i] + '.gif')) for i in range(len(data.days_icon))]
             self.build()
 
         def build(self):
             for i in range(len(self.data.days_temp_High)):
+
                 self.w_frame = tk.Frame(self)
                 self.w_frame.day = tk.Label(self.w_frame, text=self.data.week_days[i], font=SMOLL_FONT).pack()
-                self.w_frame.img = tk.Label(self.w_frame, image=self.temp_img).pack()
+                self.w_frame.img = tk.Label(self.w_frame, image=self.images[i]).pack()
                 self.w_frame.temp = tk.Label(self.w_frame, text=' {}°C,  {}°C'.format(self.data.days_temp_High[i],
                                                                                       self.data.days_temp_Low[
                                                                                           i])).pack()
