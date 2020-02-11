@@ -2,9 +2,10 @@ import tkinter as tk
 import requests
 import json
 from datetime import date
+from townsread import towns
 from decimal import Decimal
 
-
+##TODO Wyszukiwarka miast!!!!
 global cuck
 global DataInfo
 LARGE_FONT = ("Verdana", 25)
@@ -146,8 +147,7 @@ class View:
             self.moisture = tk.Label(self.info_frame, text='Humidity: {}%'.format(data.humidity), font=SMOLL_FONT)
             self.wind = tk.Label(self.info_frame, text='Wind: {}%'.format(data.wind), font=SMOLL_FONT)
 
-            self.button_1 = tk.Button(self.buttons_frame, text='Temperature',
-                                      command=lambda: Controller.rebuild(cuck))
+            self.button_1 = tk.Button(self.buttons_frame, text='Temperature')
             self.button_2 = tk.Button(self.buttons_frame, text='rainfall chance')
             self.button_3 = tk.Button(self.buttons_frame, text='wind')
 
@@ -166,14 +166,29 @@ class View:
         def __init__(self, parent):
             tk.Frame.__init__(self, parent)
 
-            eg = [str(i) + ' tak, dziala' for i in range(50)]
+            eg = ['Tokyo', 'New York', 'Mexico City', 'Mumbai', 'Sao Paulo', 'Delhi', 'Delhi', 'Shanghai', 'Kolkata',
+                  'Los Angeles', 'Dhaka', 'Buenos Aires','Karachi','Cairo','Rio de Janeiro','Osaka','Moscow', 'Katowice']
+
             var_eg = tk.StringVar(value=eg)
 
             self.entry = tk.Entry(self)
             self.entry.pack(fill='both')
 
             self.listbox = tk.Listbox(self, height=20, width=35, listvariable=var_eg)
+            self.listbox.bind('<<ListboxSelect>>', self.onselect)
             self.listbox.pack()
+
+            self.selected_town = ''
+
+            self.confirm_button = tk.Button(self, text='confirm town', command=lambda: cuck.rebuild(self.selected_town))
+            self.confirm_button.pack()
+
+
+        def onselect(self, evt):
+            w = evt.widget
+            index = int(w.curselection()[0])
+            value = w.get(index)
+            self.selected_town = value
 
     class DayWeatherClass(tk.Frame):
         # SHOW: DAY, WEATHER_TYPE_ICON, DAY_TEMPERATURE, NIGHT_TEMPERATURE
@@ -203,14 +218,15 @@ class Controller:
         self.root = tk.Tk()
         self.model = Model()
         self.view = View(self.root, DataInfo)
+        self.towns = towns()  # A Dict with structure: Town: (latitude, longitude)
 
     def run(self):
         self.root.title('works')
         self.root.mainloop()
 
-    def rebuild(self):
-        DataInfo = Info(
-            'https://api.darksky.net/forecast/7c53a90481bcc12e69c188a374ddae2d/35.6895000,139.6917100?units=si')
+    def rebuild(self, town):
+        latitude, longitude = self.towns[town][0], self.towns[town][1]
+        DataInfo = Info('https://api.darksky.net/forecast/7c53a90481bcc12e69c188a374ddae2d/{},{}?units=si'.format(latitude, longitude))
         self.view.frame.destroy()
         self.view = View(self.root, DataInfo)
 
