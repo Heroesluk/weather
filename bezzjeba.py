@@ -166,32 +166,37 @@ class View:
         def __init__(self, parent):
             tk.Frame.__init__(self, parent)
 
-            self.eg = ['Tokyo', 'New York', 'Mexico City', 'Mumbai', 'Sao Paulo', 'Delhi', 'Delhi', 'Shanghai', 'Kolkata',
+            self.towns = ['Tokyo', 'New York', 'Mexico City', 'Mumbai', 'Sao Paulo', 'Delhi', 'Delhi', 'Shanghai', 'Kolkata',
                  'Los Angeles', 'Dhaka', 'Buenos Aires','Karachi','Cairo','Rio de Janeiro','Osaka','Moscow', 'Katowice']
+            self.selected_town = ''
+            self.var_towns = tk.StringVar(value=self.towns)
 
-            self.var_eg = tk.StringVar(value=self.eg)
+            self.listbox = tk.Listbox(self, height=20, width=35, listvariable=self.var_towns)
+            self.listbox.bind('<<ListboxSelect>>', self.on_item_select)
 
             self.entry_var = tk.StringVar
-            self.entry = tk.Entry(self, textvariable=self.entry_var)
-            self.entry.bind('<Key>', self.onchange)
-            self.entry.grid(row=0,column=0)
+            self.entry = tk.Entry(self)
+            self.entry.bind('<Key>', self.on_new_entry)
 
-            self.selected_town = ''
             self.confirm_button = tk.Button(self, text='confirm town', command=lambda: cuck.rebuild(self.selected_town))
+
+            self.entry.grid(row=0,column=0)
             self.confirm_button.grid(row=1,column=0)
-
-            self.onchange(1)
-
-        def onchange(self, *args):
-            if 1 not in args:
-                print(self.entry.get())
-
-            self.var_eg = tk.StringVar(value=self.eg)
-            self.listbox = tk.Listbox(self, height=20, width=35, listvariable=self.var_eg)
-            self.listbox.bind('<<ListboxSelect>>', self.onselect)
             self.listbox.grid(row=2,column=0)
 
-        def onselect(self, evt):
+
+        def on_new_entry(self, evt):
+            w = evt.widget
+            search_var = w.get()
+            if search_var != '':
+                self.towns = [i for i in cuck.all_towns if search_var.lower() == i[:len(search_var)].lower()]
+
+            self.var_towns = tk.StringVar(value=self.towns)
+            self.listbox = tk.Listbox(self, height=35, width=35, listvariable=self.var_towns)
+            self.listbox.bind('<<ListboxSelect>>', self.on_item_select)
+            self.listbox.grid(row=2,column=0)
+
+        def on_item_select(self, evt):
             w = evt.widget
             index = int(w.curselection()[0])
             value = w.get(index)
@@ -226,16 +231,23 @@ class Controller:
         self.model = Model()
         self.view = View(self.root, DataInfo)
         self.towns = towns()  # A Dict with structure: Town: (latitude, longitude)
+        self.all_towns = towns().keys()
 
     def run(self):
         self.root.title('works')
         self.root.mainloop()
 
     def rebuild(self, town):
-        latitude, longitude = self.towns[town][0], self.towns[town][1]
-        DataInfo = Info('https://api.darksky.net/forecast/7c53a90481bcc12e69c188a374ddae2d/{},{}?units=si'.format(latitude, longitude))
-        self.view.frame.destroy()
-        self.view = View(self.root, DataInfo)
+        if town == '':
+            pass
+        else:
+            latitude, longitude = self.towns[town][0], self.towns[town][1]
+            DataInfo = Info(
+                'https://api.darksky.net/forecast/7c53a90481bcc12e69c188a374ddae2d/{},{}?units=si'.format(latitude,
+                                                                                                          longitude))
+            self.view.frame.destroy()
+            self.view = View(self.root, DataInfo)
+
 
 
 cuck = Controller()
