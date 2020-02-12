@@ -166,23 +166,30 @@ class View:
         def __init__(self, parent):
             tk.Frame.__init__(self, parent)
 
-            eg = ['Tokyo', 'New York', 'Mexico City', 'Mumbai', 'Sao Paulo', 'Delhi', 'Delhi', 'Shanghai', 'Kolkata',
-                  'Los Angeles', 'Dhaka', 'Buenos Aires','Karachi','Cairo','Rio de Janeiro','Osaka','Moscow', 'Katowice']
+            self.eg = ['Tokyo', 'New York', 'Mexico City', 'Mumbai', 'Sao Paulo', 'Delhi', 'Delhi', 'Shanghai', 'Kolkata',
+                 'Los Angeles', 'Dhaka', 'Buenos Aires','Karachi','Cairo','Rio de Janeiro','Osaka','Moscow', 'Katowice']
 
-            var_eg = tk.StringVar(value=eg)
+            self.var_eg = tk.StringVar(value=self.eg)
 
-            self.entry = tk.Entry(self)
-            self.entry.pack(fill='both')
-
-            self.listbox = tk.Listbox(self, height=20, width=35, listvariable=var_eg)
-            self.listbox.bind('<<ListboxSelect>>', self.onselect)
-            self.listbox.pack()
+            self.entry_var = tk.StringVar
+            self.entry = tk.Entry(self, textvariable=self.entry_var)
+            self.entry.bind('<Key>', self.onchange)
+            self.entry.grid(row=0,column=0)
 
             self.selected_town = ''
-
             self.confirm_button = tk.Button(self, text='confirm town', command=lambda: cuck.rebuild(self.selected_town))
-            self.confirm_button.pack()
+            self.confirm_button.grid(row=1,column=0)
 
+            self.onchange(1)
+
+        def onchange(self, *args):
+            if 1 not in args:
+                print(self.entry.get())
+
+            self.var_eg = tk.StringVar(value=self.eg)
+            self.listbox = tk.Listbox(self, height=20, width=35, listvariable=self.var_eg)
+            self.listbox.bind('<<ListboxSelect>>', self.onselect)
+            self.listbox.grid(row=2,column=0)
 
         def onselect(self, evt):
             w = evt.widget
