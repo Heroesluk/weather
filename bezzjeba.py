@@ -1,37 +1,11 @@
 import tkinter as tk
 import requests
-import json
-from datetime import date
+from datetime import date, datetime
 from townsread import towns
-from decimal import Decimal
+from graph import matlibb
 
-##TODO Wyszukiwarka miast!!!!
-global cuck
-global DataInfo
 LARGE_FONT = ("Verdana", 25)
 SMOLL_FONT = ("Verdana", 13)
-
-
-def matlibb(root):
-    import tkinter
-
-    from matplotlib.backends.backend_tkagg import (
-        FigureCanvasTkAgg, NavigationToolbar2Tk)
-    # Implement the default Matplotlib key bindings.
-    from matplotlib.backend_bases import key_press_handler
-    from matplotlib.figure import Figure
-
-    import numpy as np
-
-    fig = Figure(figsize=(5, 4), dpi=100)
-    t = np.arange(0, 3, .01)
-    fig.add_subplot(111).plot(t, 2 * np.sin(2 * np.pi * t))
-
-    canvas = FigureCanvasTkAgg(fig, master=root)  # A tk.DrawingArea.
-    canvas.draw()
-    canvas.get_tk_widget().pack(side=tkinter.TOP, fill=tkinter.BOTH, expand=1)
-
-    canvas.get_tk_widget().pack(side=tkinter.TOP, fill=tkinter.BOTH, expand=1)
 
 
 class Info():  # days_temp_high&low week_days
@@ -41,15 +15,27 @@ class Info():  # days_temp_high&low week_days
         self.data = self.req.json()
         self.days = [i for i in self.data['daily']['data']]  # list of day Json objects
 
+        # Hour info for Graph
+        self.hour_unix_times = [i['time'] for i in self.data['hourly']['data']][:24]
+        self.hour_normal_times = [datetime.utcfromtimestamp(i).strftime('%H') for i in self.hour_unix_times]
+
+        self.hour_temperatures = [i['temperature'] for i in self.data['hourly']['data']][:24]
+        self.hour_rain_prob = [i['precipProbability'] for i in self.data['hourly']['data']][:24]
+        self.hour_wind_speed = [i['windSpeed'] for i in self.data['hourly']['data']][:24]
+
+        for i in range(len(self.hour_normal_times)):
+            print(('time is {}, temperature is {}, rain probability is {}, wind speed is {}').format(
+                self.hour_normal_times[i], self.hour_temperatures[i], self.hour_rain_prob[i], self.hour_wind_speed[i]))
+
         # Day info for  Information Widget
         self.icon = self.data['currently']['icon']
         self.town = 'Lodz'  # Do zmiany na variable
         self.temperature = self.data['currently']['temperature']
         self.forecast = self.data['currently']['summary']
         self.timezone = self.data['timezone']  # Temporary for town
-        self.wind =  int(self.data['currently']['windSpeed']*1.610)
-        self.humidity = int(self.data['currently']['humidity']*100)
-        self.rain_chance = int(self.data['currently']['precipProbability']*100)
+        self.wind = int(self.data['currently']['windSpeed'] * 1.610)
+        self.humidity = int(self.data['currently']['humidity'] * 100)
+        self.rain_chance = int(self.data['currently']['precipProbability'] * 100)
 
         # Daily info for day weather widget
         self.days_temp_High = [int(i['temperatureHigh']) for i in self.days]
@@ -71,22 +57,19 @@ class Info():  # days_temp_high&low week_days
         self.day = self.week_days[0]  # current day
 
 
-DataInfo = Info('https://api.darksky.net/forecast/7c53a90481bcc12e69c188a374ddae2d/51.7833,19.4667?units=si')
-
-
-class Model:
-    pass
+DataInfo = Info('https://api.darksky.net/forecast/7c53a90481bcc12e69c188a374ddae2d/51.7833,19.4667?units=si') #Default data
 
 
 class View:
 
-    def __init__(self, master, data):
+    def __init__(self, master, data, town='Lodz'):
+        self.town = town
         self.data = data
         self.frame = tk.Frame(master)  # Parent
         self.frame.pack()
 
-        self.GraphWidget = self.GraphClass(self.frame)
-        self.InformationWidget = self.InformationClass(self.frame,self.data)
+        self.GraphWidget = self.GraphClass(self.frame, self.data)
+        self.InformationWidget = self.InformationClass(self.frame, self.data, self.town)
         self.TownListWidget = self.TownListClass(self.frame)
         self.DayWeatherWidget = self.DayWeatherClass(self.frame, self.data)
 
@@ -95,35 +78,30 @@ class View:
         self.TownListWidget.grid(rowspan=2, row=0, column=1, sticky="nsew")
         self.DayWeatherWidget.grid(row=2, column=0, sticky="nsew")
 
-        self.weathers = []
-
-    def prep_img(self):
-        self.weathers = ['clear-day','clear-night','rain','snow','sleet','wind','fog','cloudy','partly-cloudy-day','partly-cloudy-night']
-
-        self.current_img = tk.Image
-
     class GraphClass(tk.Frame):
 
-        def __init__(self, master):
+        def __init__(self, master, data):
             tk.Frame.__init__(self, master)
+            self.data = data
             self.spread_frame = tk.Frame(self)
-            matlibb(self.spread_frame)
+            self.configure(background='red')
+            matlibb(self.spread_frame, self.data)
             self.spread_frame.grid(row=0, columnspan=2)
 
     class InformationClass(tk.Frame):
         # show: TOWN, DAY, TIME, WEATHER_TYPE(E.G CLOUDY), WEATHER_TYPE_ICON,
         # DAY_TEMPERATURE, RAINFALL_CHANCE, MOISTURE, WIND_STR
 
-        def __init__(self, parent,data):
+        def __init__(self, parent, data, town):
             tk.Frame.__init__(self, parent)
             self.data = data
+            self.town = town
             self.configure(background='blue')
-
             self.weather_image = tk.PhotoImage(file=data.icon + '.gif')
 
             # Parent Frames
 
-            self.town_label = tk.Label(self, text=self.data.timezone, font=LARGE_FONT)  # Displays town
+            self.town_label = tk.Label(self, text=self.town, font=LARGE_FONT)  # Displays town
             self.day_label = tk.Label(self, text=self.data.day, font=SMOLL_FONT)  # Displays day
             self.forcecast_label = tk.Label(self, text=self.data.forecast, font=SMOLL_FONT)  # Displays text forecast
             self.display_frame = tk.Frame(self)  # Displays weather(as picture) and temperature
@@ -143,7 +121,8 @@ class View:
                                         font=SMOLL_FONT)
             self.image_label = tk.Label(self.display_frame, image=self.weather_image)
 
-            self.rainfall = tk.Label(self.info_frame, text='Rainfall chance: {}%'.format(data.rain_chance), font=SMOLL_FONT)
+            self.rainfall = tk.Label(self.info_frame, text='Rainfall chance: {}%'.format(data.rain_chance),
+                                     font=SMOLL_FONT)
             self.moisture = tk.Label(self.info_frame, text='Humidity: {}%'.format(data.humidity), font=SMOLL_FONT)
             self.wind = tk.Label(self.info_frame, text='Wind: {}%'.format(data.wind), font=SMOLL_FONT)
 
@@ -166,8 +145,10 @@ class View:
         def __init__(self, parent):
             tk.Frame.__init__(self, parent)
 
-            self.towns = ['Tokyo', 'New York', 'Mexico City', 'Mumbai', 'Sao Paulo', 'Delhi', 'Delhi', 'Shanghai', 'Kolkata',
-                 'Los Angeles', 'Dhaka', 'Buenos Aires','Karachi','Cairo','Rio de Janeiro','Osaka','Moscow', 'Katowice']
+            self.towns = ['Tokyo', 'New York', 'Mexico City', 'Mumbai', 'Sao Paulo', 'Delhi', 'Delhi', 'Shanghai',
+                          'Kolkata',
+                          'Los Angeles', 'Dhaka', 'Buenos Aires', 'Karachi', 'Cairo', 'Rio de Janeiro', 'Osaka',
+                          'Moscow', 'Katowice']
             self.selected_town = ''
             self.var_towns = tk.StringVar(value=self.towns)
 
@@ -178,23 +159,23 @@ class View:
             self.entry = tk.Entry(self)
             self.entry.bind('<Key>', self.on_new_entry)
 
-            self.confirm_button = tk.Button(self, text='confirm town', command=lambda: cuck.rebuild(self.selected_town))
+            self.confirm_button = tk.Button(self, text='confirm town',
+                                            command=lambda: MainApp.rebuild(self.selected_town))
 
-            self.entry.grid(row=0,column=0)
-            self.confirm_button.grid(row=1,column=0)
-            self.listbox.grid(row=2,column=0)
-
+            self.entry.grid(row=0, column=0)
+            self.confirm_button.grid(row=1, column=0)
+            self.listbox.grid(row=2, column=0)
 
         def on_new_entry(self, evt):
             w = evt.widget
             search_var = w.get()
             if search_var != '':
-                self.towns = [i for i in cuck.all_towns if search_var.lower() == i[:len(search_var)].lower()]
+                self.towns = [i for i in MainApp.all_towns if search_var.lower() == i[:len(search_var)].lower()]
 
             self.var_towns = tk.StringVar(value=self.towns)
             self.listbox = tk.Listbox(self, height=35, width=35, listvariable=self.var_towns)
             self.listbox.bind('<<ListboxSelect>>', self.on_item_select)
-            self.listbox.grid(row=2,column=0)
+            self.listbox.grid(row=2, column=0)
 
         def on_item_select(self, evt):
             w = evt.widget
@@ -213,7 +194,6 @@ class View:
 
         def build(self):
             for i in range(len(self.data.days_temp_High)):
-
                 self.w_frame = tk.Frame(self)
                 self.w_frame.day = tk.Label(self.w_frame, text=self.data.week_days[i], font=SMOLL_FONT).pack()
                 self.w_frame.img = tk.Label(self.w_frame, image=self.images[i]).pack()
@@ -228,7 +208,6 @@ class Controller:
 
     def __init__(self):
         self.root = tk.Tk()
-        self.model = Model()
         self.view = View(self.root, DataInfo)
         self.towns = towns()  # A Dict with structure: Town: (latitude, longitude)
         self.all_towns = towns().keys()
@@ -246,9 +225,8 @@ class Controller:
                 'https://api.darksky.net/forecast/7c53a90481bcc12e69c188a374ddae2d/{},{}?units=si'.format(latitude,
                                                                                                           longitude))
             self.view.frame.destroy()
-            self.view = View(self.root, DataInfo)
+            self.view = View(self.root, DataInfo, town)
 
 
-
-cuck = Controller()
-cuck.run()
+MainApp = Controller()
+MainApp.run()

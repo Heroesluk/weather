@@ -1,6 +1,5 @@
 import csv
 
-
 def towns():
     with open('worldcities.csv', 'r', encoding="utf8") as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
