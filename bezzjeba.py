@@ -3,7 +3,9 @@ import requests
 from datetime import date, datetime
 from townsread import towns
 from graph import matlibb
+#TODO: czas w wykresie z wlasnego na dany dla strefy czasowej, current czas jako label, UI improvment
 
+#nie chce mi sie tego gowna na razie drazyc
 LARGE_FONT = ("Verdana", 25)
 SMOLL_FONT = ("Verdana", 13)
 
